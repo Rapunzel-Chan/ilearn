@@ -1,6 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from materials.models import Course, Lesson
+
+
 # Create your models here.
 
 
@@ -40,3 +43,41 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
+
+
+class Payment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments", verbose_name="Пользователь",
+                             help_text="Укажите Пользователя")
+
+    paid_date = models.DateTimeField(
+        auto_now_add=True, verbose_name="Дата создания", help_text="Введите дату создания продукта"
+    )
+    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
+    lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True)
+    PAID_CHOICES = [
+        ('lesson', 'Урок оплачен'),
+        ('course', 'Курс оплачен'),
+    ]
+    paid_status = models.CharField(
+        max_length=10,
+        choices=PAID_CHOICES,
+        # default='created',
+        verbose_name="Статус оплаты")
+
+    sum_of_payment = models.DecimalField(max_digits=10, decimal_places=2)
+
+    TYPE_CHOICES = [
+
+        ('cash', 'Наличный расчет'),
+        ('cashless', 'Безналичный расчет'),
+    ]
+
+    payment_type = models.CharField(
+        max_length=10,
+        choices=TYPE_CHOICES,
+        # default='created',
+        verbose_name="Тип оплаты")
+
+    class Meta:
+        verbose_name = "Оплата"
+        verbose_name_plural = "Оплаты"

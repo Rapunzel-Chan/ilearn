@@ -1,0 +1,18 @@
+[
+  {
+    "model": "materials.course",
+    "pk": 1,
+    "fields": {
+      "title": "Python для начинающих",
+      "description": "Базовый курс по Python с нуля до первого проекта."
+    }
+  },
+  {
+    "model": "materials.course",
+    "pk": 2,
+    "fields": {
+      "title": "Продвинутый Python",
+      "description": "Курс для тех, кто хочет углубить знания Python и освоить сложные темы."
+    }
+  }
+]
