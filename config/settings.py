@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "users",
     "materials",
+    "django_filters",
 ]
 
 MIDDLEWARE = [
@@ -75,6 +76,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+REST_FRAMEWORK = {"DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"]}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -147,5 +149,5 @@ LOGOUT_REDIRECT_URL = "/"
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
 FIXTURE_DIRS = [
-    os.path.join(BASE_DIR, 'fixtures'),
+    os.path.join(BASE_DIR, "fixtures"),
 ]
