@@ -10,15 +10,18 @@ class LessonSerializer(ModelSerializer):
         fields = "__all__"
 
 
+class LessonShortSerializer(ModelSerializer):
+    class Meta:
+        model = Lesson
+        fields = ["id", "title"]
+
+
 class CourseSerializer(ModelSerializer):
     count_lesson_of_the_same_course = SerializerMethodField()
-    lessons = LessonSerializer(many=True, read_only=True)
+    lessons = LessonShortSerializer(many=True, read_only=True)
 
     def get_count_lesson_of_the_same_course(self, course):
         return course.lessons.count()
-
-    def get_lessons(self, course):
-        return [lesson.title for lesson in Lesson.objects.filter(course=course)]
 
     class Meta:
         model = Course

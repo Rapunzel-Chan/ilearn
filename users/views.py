@@ -10,11 +10,10 @@ from users.serializers import PaymentSerializer
 # Create your views here.
 
 
-
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = PaymentFilter
+    filterset_fields = ["course", "lesson", "payment_type"]
     ordering_fields = ["paid_date"]
     ordering = ["-paid_date"]

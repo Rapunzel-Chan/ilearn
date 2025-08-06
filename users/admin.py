@@ -17,14 +17,12 @@ class PaymentAdmin(admin.ModelAdmin):
         "user",
         "course",
         "lesson",
-        "paid_status",
         "sum_of_payment",
         "payment_type",
         "paid_date",
     )
     list_filter = (
         "payment_type",
-        "paid_status",
         "paid_date",
     )
     search_fields = (

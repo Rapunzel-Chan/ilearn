@@ -59,17 +59,6 @@ class Payment(models.Model):
     )
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
     lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True)
-    PAID_CHOICES = [
-        ("lesson", "Урок оплачен"),
-        ("course", "Курс оплачен"),
-    ]
-    paid_status = models.CharField(
-        max_length=10,
-        choices=PAID_CHOICES,
-        # default='created',
-        verbose_name="Статус оплаты",
-    )
-
     sum_of_payment = models.DecimalField(max_digits=10, decimal_places=2)
 
     TYPE_CHOICES = [
