@@ -1,9 +1,13 @@
 from django.shortcuts import render
+from rest_framework.decorators import permission_classes
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from materials.models import Course, Lesson
 from materials.serializers import CourseSerializer, LessonSerializer
+from users.permissions import IsModerator, IsOwner
+
 
 # Create your views here.
 
@@ -12,15 +16,50 @@ class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
+    def get_permissions(self):
+        if self.action in ['create']:
+            permission_classes = [IsAuthenticated]
+        elif self.action in ['destroy']:
+            permission_classes = [IsOwner,]
+
+        elif self.action in ['update', 'partial_update', 'retrieve']:
+            permission_classes = [IsAuthenticated & (IsOwner | IsModerator)]
+        elif self.action in ['list']:
+            permission_classes = [IsAuthenticated & IsModerator]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [perm() for perm in permission_classes]
+
+    def perform_create(self, serializer):
+        course = serializer.save()
+        course.owner = self.request.user
+        course.save()
+
 
 class LessonCreateApiView(CreateAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+    permission_classes = [IsOwner,]
 
+    def perform_create(self, serializer):
+        lesson = serializer.save()
+        lesson.owner = self.request.user
+        lesson.save()
 
 class LessonListApiView(ListAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            perms = [IsAuthenticated & (IsOwner | IsModerator)]
+        elif self.request.method == 'GET':
+            perms = [IsAuthenticated]
+        elif self.request.method == 'DELETE':
+            perms = [IsAuthenticated & IsOwner]
+        else:
+            perms = [IsAuthenticated]
+        return [p() for p in perms]
 
 
 class LessonRetrieveApiView(RetrieveAPIView):
@@ -31,6 +70,11 @@ class LessonRetrieveApiView(RetrieveAPIView):
 class LessonUpdateApiView(UpdateAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'destroy']:
+            return []
+        return [IsModerator()]
 
 
 class LessonDestroyApiView(DestroyAPIView):
