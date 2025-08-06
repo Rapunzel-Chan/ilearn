@@ -1,0 +1,35 @@
+[
+  {
+    "model": "materials.lesson",
+    "pk": 5,
+    "fields": {
+      "course": 1,
+      "title": "Введение в Python",
+      "description": "Основные концепции и синтаксис Python.",
+      "photo": null,
+      "url": null
+    }
+  },
+  {
+    "model": "materials.lesson",
+    "pk": 6,
+    "fields": {
+      "course": 1,
+      "title": "Работа с переменными и типами данных",
+      "description": "Переменные, типы данных, ввод/вывод.",
+      "photo": null,
+      "url": null
+    }
+  },
+  {
+    "model": "materials.lesson",
+    "pk": 7,
+    "fields": {
+      "course": 2,
+      "title": "ООП в Python",
+      "description": "Классы, объекты, наследование и инкапсуляция.",
+      "photo": null,
+      "url": null
+    }
+  }
+]
