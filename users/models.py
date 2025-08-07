@@ -2,8 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 
-from materials.models import Course, Lesson
-
 # Create your models here.
 
 
@@ -57,8 +55,8 @@ class Payment(models.Model):
     paid_date = models.DateTimeField(
         default=timezone.now, verbose_name="Дата создания", help_text="Введите дату создания продукта"
     )
-    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
-    lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True)
+    course = models.ForeignKey("materials.Course", on_delete=models.SET_NULL, null=True, blank=True)
+    lesson = models.ForeignKey("materials.Lesson", on_delete=models.SET_NULL, null=True, blank=True)
     sum_of_payment = models.DecimalField(max_digits=10, decimal_places=2)
 
     TYPE_CHOICES = [
