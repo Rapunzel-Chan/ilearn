@@ -16,6 +16,8 @@ pillow = "^11.3.0"
 django-filter = "^25.1"
 djangorestframework-simplejwt = "^5.5.1"
 ipython = "^9.4.0"
+pytest = "^8.4.1"
+coverage = "^7.10.3"
 
 
 [tool.poetry.group.lint.dependencies]
@@ -23,6 +25,10 @@ flake8 = "^7.3.0"
 black = "^25.1.0"
 isort = "^6.0.1"
 mypy = "^1.17.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
 
 [build-system]
 requires = ["poetry-core"]

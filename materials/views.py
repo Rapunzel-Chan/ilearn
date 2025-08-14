@@ -1,18 +1,15 @@
-from django.shortcuts import render
-from rest_framework.decorators import permission_classes
+from django.shortcuts import get_object_or_404
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
-
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from materials.models import Course, Lesson
+from materials.models import Course, Lesson, Subscription
 from materials.paginations import CustomPagination
 from materials.serializers import CourseSerializer, LessonSerializer, UserSubscriptionSerializer
 from users.permissions import IsModerator, IsOwner
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
-from materials.models import Subscription
+
 # Create your views here.
 
 
@@ -26,7 +23,6 @@ class CourseViewSet(ModelViewSet):
             permission_classes = [IsAuthenticated]
         elif self.action in ["destroy"]:
             permission_classes = [IsOwner]
-
         elif self.action in ["update", "partial_update", "retrieve"]:
             permission_classes = [IsAuthenticated & (IsOwner | IsModerator)]
         elif self.action in ["list"]:
