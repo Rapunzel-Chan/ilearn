@@ -1,14 +1,18 @@
 from django.shortcuts import render
 from rest_framework.decorators import permission_classes
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
-from rest_framework.permissions import IsAuthenticated
+
 from rest_framework.viewsets import ModelViewSet
 
 from materials.models import Course, Lesson
 from materials.paginations import CustomPagination
-from materials.serializers import CourseSerializer, LessonSerializer
+from materials.serializers import CourseSerializer, LessonSerializer, UserSubscriptionSerializer
 from users.permissions import IsModerator, IsOwner
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+from materials.models import Subscription
 # Create your views here.
 
 
@@ -73,3 +77,31 @@ class LessonDestroyApiView(DestroyAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated, IsOwner]
+
+
+class SubscriptionAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        course_id = request.data.get("course_id")
+        course = get_object_or_404(Course, id=course_id)
+
+        subs_qs = Subscription.objects.filter(user=user, course=course)
+        if subs_qs.exists():
+            subs_qs.delete()
+            message = "подписка удалена"
+        else:
+            Subscription.objects.create(user=user, course=course)
+            message = "подписка добавлена"
+
+        return Response({"message": message})
+
+
+class UserSubscriptionsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        subscriptions = Subscription.objects.filter(user=request.user)
+        serializer = UserSubscriptionSerializer(subscriptions, many=True)
+        return Response(serializer.data)
