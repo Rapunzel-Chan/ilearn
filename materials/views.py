@@ -26,10 +26,16 @@ class CourseViewSet(ModelViewSet):
         elif self.action in ["update", "partial_update", "retrieve"]:
             permission_classes = [IsAuthenticated & (IsOwner | IsModerator)]
         elif self.action in ["list"]:
-            permission_classes = [IsAuthenticated & IsModerator]
+            permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAuthenticated]
         return [perm() for perm in permission_classes]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.groups.filter(name="Moderators").exists():
+            return qs
+        return qs.filter(owner=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
