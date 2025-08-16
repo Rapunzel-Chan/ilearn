@@ -19,6 +19,8 @@ ipython = "^9.4.0"
 pytest = "^8.4.1"
 coverage = "^7.10.3"
 drf-spectacular = "^0.28.0"
+stripe = "^12.4.0"
+forex-python = "^1.9.2"
 
 
 [tool.poetry.group.lint.dependencies]

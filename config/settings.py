@@ -94,8 +94,8 @@ SPECTACULAR_SETTINGS = {
 
 STRIPE_API_KEY = os.getenv("STRIPE_API_KEY", "")
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY", "")
-APP_DOMAIN = os.getenv("APP_DOMAIN", "http://localhost:8000")  # для success/cancel URL
-# DEFAULT_CURRENCY = os.getenv("DEFAULT_CURRENCY", "usd")
+APP_DOMAIN = os.getenv("APP_DOMAIN", "http://localhost:8000")
+
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),

@@ -1,25 +1,62 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
 from users.models import Payment, User
-from users.serializers import PaymentSerializer, UserPrivateSerializer, UserPublicSerializer, UserSerializer
+from users.serializers import PaymentSerializer, UserPrivateSerializer, UserPublicSerializer, UserSerializer, \
+    PaymentCreateSerializer
+from users.services import create_stripe_session, create_stripe_price, convert_rub_to_usd
 
 # Create your views here.
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
-    serializer_class = PaymentSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_fields = ["course", "lesson", "payment_type"]
-    ordering_fields = ["paid_date"]
-    ordering = ["-paid_date"]
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=["post"], url_path="create")
+    def create_payment(self, request):
+        serializer = PaymentCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payment = serializer.save(user=request.user)
+
+        sum_of_payment_in_usd = convert_rub_to_usd(payment.sum_of_payment)
+        price = create_stripe_price(sum_of_payment_in_usd)
+        session_id, payment_link = create_stripe_session(price.id)
+
+        payment.session_id = session_id
+        payment.link = payment_link
+        payment.price_id = price.id
+        payment.save()
+
+        return Response({
+            "id": payment.id,
+            "course": payment.course.id,
+            "lesson": payment.lesson.id,
+            "sum_of_payment": payment.sum_of_payment,
+            "payment_type": payment.payment_type,
+            "link": payment.link,
+        })
+
+
+# class PaymentCreateAPIView(CreateAPIView):
+#     serializer_class = PaymentCreateSerializer
+#     permission_classes = [IsAuthenticated]
+#     queryset = Payment.objects.all()
+#
+#     def perform_create(self, serializer):
+#         payment = serializer.save(user=self.request.user)
+#         sum_of_payment_in_usd = convert_rub_to_usd(payment.sum_of_payment)
+#         price = create_stripe_price(sum_of_payment_in_usd)
+#         session_id, payment_link = create_stripe_session(price.id)
+#         payment.session_id = session_id
+#         payment.link = payment_link
+#         payment.price_id = price.id
+#         payment.save()
 
 
 class UserCreateAPIView(CreateAPIView):
