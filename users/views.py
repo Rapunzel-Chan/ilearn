@@ -1,15 +1,12 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from users.models import Payment, User
-from users.serializers import PaymentSerializer, UserPrivateSerializer, UserPublicSerializer, UserSerializer, \
-    PaymentCreateSerializer
-from users.services import create_stripe_session, create_stripe_price, convert_rub_to_usd
+from users.serializers import PaymentCreateSerializer, UserPrivateSerializer, UserPublicSerializer, UserSerializer
+from users.services import convert_rub_to_usd, create_stripe_price, create_stripe_session
 
 # Create your views here.
 
@@ -33,14 +30,16 @@ class PaymentViewSet(viewsets.ModelViewSet):
         payment.price_id = price.id
         payment.save()
 
-        return Response({
-            "id": payment.id,
-            "course": payment.course.id,
-            "lesson": payment.lesson.id,
-            "sum_of_payment": payment.sum_of_payment,
-            "payment_type": payment.payment_type,
-            "link": payment.link,
-        })
+        return Response(
+            {
+                "id": payment.id,
+                "course": payment.course.id,
+                "lesson": payment.lesson.id,
+                "sum_of_payment": payment.sum_of_payment,
+                "payment_type": payment.payment_type,
+                "link": payment.link,
+            }
+        )
 
 
 # class PaymentCreateAPIView(CreateAPIView):

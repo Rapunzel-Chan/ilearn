@@ -9,7 +9,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = ["course", "lesson", "payment_type",  "course_title"]
+        fields = ["course", "lesson", "payment_type", "course_title"]
 
 
 class PaymentCreateSerializer(serializers.ModelSerializer):
@@ -24,8 +24,16 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = [
-            "id", "user", "course", "lesson", "sum_of_payment",
-            "payment_type", "status", "checkout_url", "stripe_session_id", "paid_date"
+            "id",
+            "user",
+            "course",
+            "lesson",
+            "sum_of_payment",
+            "payment_type",
+            "status",
+            "checkout_url",
+            "stripe_session_id",
+            "paid_date",
         ]
         depth = 1
 

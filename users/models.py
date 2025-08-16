@@ -72,7 +72,9 @@ class Payment(models.Model):
     )
 
     paid_date = models.DateTimeField(
-        default=timezone.now, verbose_name="Дата создания", help_text="Укажите дату создания продукта",
+        default=timezone.now,
+        verbose_name="Дата создания",
+        help_text="Укажите дату создания продукта",
     )
     course = models.ForeignKey("materials.Course", on_delete=models.SET_NULL, null=True, blank=True)
     lesson = models.ForeignKey("materials.Lesson", on_delete=models.SET_NULL, null=True, blank=True)
@@ -89,10 +91,34 @@ class Payment(models.Model):
         verbose_name="Тип оплаты",
     )
 
-    product_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID продукта", help_text="Укажите ID продукта",)
-    price_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID стоимости продукта", help_text="Введите ID стоимости продукта",)
-    session_id = models.CharField(max_length=500, blank=True, null=True, verbose_name="ID сессии", help_text="Укажите ID сессии",)
-    link = models.URLField(max_length=500, blank=True, null=True, verbose_name="Ссылка для оплаты", help_text="Введите ссылку для оплаты",)
+    product_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="ID продукта",
+        help_text="Укажите ID продукта",
+    )
+    price_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="ID стоимости продукта",
+        help_text="Введите ID стоимости продукта",
+    )
+    session_id = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name="ID сессии",
+        help_text="Укажите ID сессии",
+    )
+    link = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name="Ссылка для оплаты",
+        help_text="Введите ссылку для оплаты",
+    )
 
     STATUS_CHOICES = [
         ("created", "Создан"),
