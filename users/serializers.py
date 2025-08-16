@@ -9,7 +9,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = ["course", "lesson", "payment_type"]
+        fields = ["course", "lesson", "payment_type",  "course_title"]
 
 
 class UserSerializer(ModelSerializer):
