@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -28,8 +29,8 @@ class Course(models.Model):
         verbose_name_plural = "Курсы"
         ordering = ["title"]
 
-    # def __str__(self):
-    #     return self.name
+    def __str__(self):
+        return self.title
 
 
 class Lesson(models.Model):
@@ -74,5 +75,19 @@ class Lesson(models.Model):
         verbose_name_plural = "Уроки"
         ordering = ["course", "title"]
 
-    # def __str__(self):
-    #     return self.name
+    def __str__(self):
+        return self.title
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="subscriptions", verbose_name="Пользователь"
+    )
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="subscriptions", verbose_name="Курс")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "course")
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
+        ordering = ["-created_at"]
