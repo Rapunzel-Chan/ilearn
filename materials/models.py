@@ -23,7 +23,10 @@ class Course(models.Model):
         help_text="Загрузите превью курса",
     )
     owner = models.ForeignKey("users.User", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Владелец")
-    updated_at = models.DateTimeField(null=True, blank=True,)
+    updated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = "Курс"

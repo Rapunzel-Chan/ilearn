@@ -1,5 +1,5 @@
 from datetime import timedelta
-from materials.tasks import send_course_update_emails
+
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
@@ -11,6 +11,7 @@ from rest_framework.viewsets import ModelViewSet
 from materials.models import Course, Lesson, Subscription
 from materials.paginations import CustomPagination
 from materials.serializers import CourseSerializer, LessonSerializer, UserSubscriptionSerializer
+from materials.tasks import send_course_update_emails
 from users.permissions import IsModerator, IsOwner
 
 # Create your views here.
