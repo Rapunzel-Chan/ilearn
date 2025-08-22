@@ -21,6 +21,9 @@ coverage = "^7.10.3"
 drf-spectacular = "^0.28.0"
 stripe = "^12.4.0"
 forex-python = "^1.9.2"
+celery = "^5.5.3"
+redis = "^6.4.0"
+django-celery-beat = "^2.8.1"
 
 
 [tool.poetry.group.lint.dependencies]

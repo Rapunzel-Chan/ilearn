@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -8,6 +11,7 @@ from rest_framework.viewsets import ModelViewSet
 from materials.models import Course, Lesson, Subscription
 from materials.paginations import CustomPagination
 from materials.serializers import CourseSerializer, LessonSerializer, UserSubscriptionSerializer
+from materials.tasks import send_course_update_emails
 from users.permissions import IsModerator, IsOwner
 
 # Create your views here.
@@ -39,6 +43,12 @@ class CourseViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def perform_update(self, serializer):
+        course = serializer.save()
+        last_updated = course.updated_at
+        if not last_updated or (timezone.now() - last_updated > timedelta(hours=4)):
+            send_course_update_emails.delay(course.id)
 
 
 class LessonCreateApiView(CreateAPIView):
