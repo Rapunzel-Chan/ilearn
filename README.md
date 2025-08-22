@@ -105,6 +105,40 @@ python manage.py test
 
 Список переменных окружений находится в .env.example. Заполните данные для правильной работы приложения.
 
+## Запуск и проверка сервисов приложения в Docker-контейнере
+
+# I-learn — Multi-container Setup with Docker Compose
+
+1. Установите Docker и Docker Compose.
+2. Убедитесь, что в корне проекта есть: `Dockerfile`, `docker-compose.yml`, `.env.example`
+3. Создайте .env и заполните необходимые значения
+4. Запустите всю систему:
+```
+docker compose up -d --build
+```
+5. Плднимите базовые сервисы и проверьте статус и их "здоровье":
+```
+docker-compose up -d db redis
+docker-compose ps
+```
+
+6. Выполните миграции для полноценной работы beat:
+```
+docker-compose run --rm backend python manage.py migrate
+```
+
+7. Поднимите все сервисы:
+```
+docker-compose up -d backend celery beat
+```
+
+8. Проверьте логи по сервисам:
+```
+docker-compose -f logs backend
+docker-compose -f logs celery
+docker-compose -f logs beat
+```
+
 ## Создатель
 
 В случае возникновения вопросов, нахождения багов или предложений по улучшению кода, можно обратиться к разработчику
