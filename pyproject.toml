@@ -24,6 +24,7 @@ forex-python = "^1.9.2"
 celery = "^5.5.3"
 redis = "^6.4.0"
 django-celery-beat = "^2.8.1"
+docker = "^7.1.0"
 
 
 [tool.poetry.group.lint.dependencies]
