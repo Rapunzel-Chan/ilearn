@@ -2,7 +2,7 @@
 name = "i-learn"
 version = "0.1.0"
 description = ""
-authors = ["Rapunzel <osina_kv@mail.ru>"]
+authors = ["Rapunzel <osina_kv@mailr.ru>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
