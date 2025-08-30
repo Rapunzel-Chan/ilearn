@@ -15,9 +15,10 @@ RUN pip install "poetry>=1.6,<2.0"
 WORKDIR /app
 
 COPY pyproject.toml poetry.lock* /app/
-
 RUN poetry install --no-root
 
 COPY . /app
 
 EXPOSE 8000
+
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "config.wsgi:application"]
