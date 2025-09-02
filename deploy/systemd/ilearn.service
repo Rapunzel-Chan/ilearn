@@ -1,0 +1,15 @@
+[Unit]
+Description=iLearn app (Docker Compose)
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/your_user/I-learn
+ExecStart=/usr/bin/docker compose --env-file /home/your_user/I-learn/.env -f /home/your_user/I-learn/docker-compose.prod.yml up
+ExecStop=/usr/bin/docker compose -f /home/your_user/I-learn/docker-compose.prod.yml down
+Restart=always
+
+
+[Install]
+WantedBy=multi-user.target

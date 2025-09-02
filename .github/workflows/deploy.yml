@@ -2,67 +2,85 @@ name: CI/CD Django Docker Deploy
 
 on:
   push:
-    branches:
-      - develop
-      - main
+    branches: [ develop, main ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      docker:
-        image: docker:19.03.12
-        options: --privileged
-        ports:
-          - 8000:8000
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Build & start (dev compose)
+        run: docker compose -f docker-compose.yml -p ci up -d --build
 
-      - name: Build and start containers
+      - name: Migrate, collectstatic, test with JUnit report
         run: |
-          docker-compose up -d --build
-          sleep 10
-          docker exec ilearn_backend python manage.py migrate
-          docker exec ilearn_backend python manage.py test
+          docker compose -p ci exec -T backend python manage.py migrate --noinput
+          docker compose -p ci exec -T backend python manage.py collectstatic --noinput
+          mkdir -p reports
+          docker compose -p ci exec -T backend python manage.py test \
+            --verbosity=2 \
+            --testrunner=xmlrunner.extra.djangotestrunner.XMLTestRunner \
+            --output-file=reports/test-results.xml
 
-      - name: Tear down
+      - name: Upload test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: reports/test-results.xml
+
+      - name: Down
         if: always()
-        run: docker-compose down --volumes
+        run: docker compose -p ci down -v
 
-  build-and-push:
+  build_and_push:
     runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker registry
-        uses: docker/login-action@v2
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push image
-        run: |
-          docker build -t ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.IMAGE_NAME }}:latest .
-          docker push ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.IMAGE_NAME }}:latest
+      - name: Build & Push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ vars.DOCKER_REGISTRY }}/${{ vars.IMAGE_NAME }}:latest
+            ${{ vars.DOCKER_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: build_and_push
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@v1
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.1
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          script_stop: true
           script: |
+            set -eux
             cd /home/${{ secrets.SERVER_USER }}/I-learn
-            docker pull ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.IMAGE_NAME }}:latest
-            docker-compose down
-            docker-compose up -d
+            # Декодируем ENV_FILE (base64)
+            printf '%s' "${{ secrets.ENV_FILE }}" | base64 --decode > .env
+
+            docker compose --env-file .env -f docker-compose.prod.yml pull
+            docker compose --env-file .env -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose --env-file .env -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
+            docker compose --env-file .env -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput

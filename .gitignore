@@ -169,3 +169,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# приватные ключи для деплоя
+deploy_key
+deploy_key*
