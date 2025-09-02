@@ -29,31 +29,30 @@ services:
       timeout: 3s
       retries: 30
 
-  services:
-    backend:
-      build:
-        context: .
-        dockerfile: Dockerfile
-      container_name: ilearn_backend
-      depends_on:
-        db:
-          condition: service_healthy
-        redis:
-          condition: service_healthy
-      env_file: .env
-      environment:
-        DATABASE_HOST: db
-        DATABASE_PORT: 5432
-        CELERY_BROKER_URL: redis://redis:6379/0
-        CELERY_RESULT_BACKEND: redis://redis:6379/0
-      ports:
-        - "8000:8000"
-      command: >
-        gunicorn --bind 0.0.0.0:8000 config.wsgi:application
-      volumes:
-        - .:/app
-        - media:/app/media
-        - static:/app/static
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ilearn_backend
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    command: >
+      gunicorn --bind 0.0.0.0:8000 config.wsgi:application
+    volumes:
+      - .:/app
+      - media:/app/media
+      - static:/app/static
 
   celery:
     build:
