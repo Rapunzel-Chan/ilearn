@@ -1,86 +1,86 @@
 name: CI/CD Django Docker Deploy
 
-on:
-  push:
-    branches: [ develop, main ]
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+on: [push, pull_request]
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out code
+        uses: actions/checkout@v3
 
-      - name: Build & start (dev compose)
-        run: docker compose -f docker-compose.yml -p ci up -d --build
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-      - name: Migrate, collectstatic, test with JUnit report
+      - name: Install flake8
         run: |
-          docker compose -p ci exec -T backend python manage.py migrate --noinput
-          docker compose -p ci exec -T backend python manage.py collectstatic --noinput
-          mkdir -p reports
-          docker compose -p ci exec -T backend python manage.py test \
-            --verbosity=2 \
-            --testrunner=xmlrunner.extra.djangotestrunner.XMLTestRunner \
-            --output-file=reports/test-results.xml
+          python -m pip install --upgrade pip
+          pip install flake8
 
-      - name: Upload test report
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-report
-          path: reports/test-results.xml
+      - name: Run flake8
+        run: flake8 .
 
-      - name: Down
-        if: always()
-        run: docker compose -p ci down -v
-
-  build_and_push:
+  test:
+    needs: lint
     runs-on: ubuntu-latest
-    needs: test
-    permissions:
-      contents: read
-      packages: write
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+        - name: Check out code
+          uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        - name: Set up Python
+          uses: actions/setup-python@v4
+          with:
+            python-version: '3.12'
 
-      - name: Build & Push image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ vars.DOCKER_REGISTRY }}/${{ vars.IMAGE_NAME }}:latest
-            ${{ vars.DOCKER_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ github.sha }}
+        - name: Install dependencies
+          run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+
+        - name: Run tests
+          run: python manage.py test
+          env:
+            SECRET_KEY: test_secret_key
+
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Log in in Docker Hub
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/myapp:${{ github.sha }} .
+
+      - name: Push Docker image in Docker hub
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/myapp:${{ github.sha }}
+
 
   deploy:
+    needs: build
     runs-on: ubuntu-latest
-    needs: build_and_push
-    steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.1
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script_stop: true
-          script: |
-            set -eux
-            cd /home/${{ secrets.SERVER_USER }}/I-learn
-            # Декодируем ENV_FILE (base64)
-            printf '%s' "${{ secrets.ENV_FILE }}" | base64 --decode > .env
 
-            docker compose --env-file .env -f docker-compose.prod.yml pull
-            docker compose --env-file .env -f docker-compose.prod.yml up -d --remove-orphans
-            docker compose --env-file .env -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
-            docker compose --env-file .env -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput
+    steps:
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      - name: Deploy to server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/myapp:${{ github.sha }}
+          docker stop myapp || true
+          docker rm myapp || true
+          docker run -d --name myapp -p 80:8000 ${{ secrets.DOCKERHUB_USERNAME }}/myapp:${{ github.sha }}
+          EOF
+   
