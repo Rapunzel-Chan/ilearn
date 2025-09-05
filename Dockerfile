@@ -18,8 +18,9 @@ RUN poetry install --no-root
 
 COPY . .
 
-RUN mkdir -p /app/static && chmod -R 755 /app/static
+
+RUN mkdir -p /app/static /app/media && chmod -R 755 /app/static /app/media
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000"]
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
