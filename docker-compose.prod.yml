@@ -35,11 +35,11 @@ services:
         condition: service_healthy
     env_file: .env
     environment:
-      STATIC_ROOT: ${STATIC_ROOT}
       DATABASE_HOST: db
       DATABASE_PORT: 5432
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
+      STATIC_ROOT: /app/static
     command: gunicorn --bind 0.0.0.0:8000 config.wsgi:application
     volumes:
       - media:/app/media
