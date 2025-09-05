@@ -115,14 +115,16 @@ python manage.py test
 ```
 docker compose up -d --build
 ```
-5. Поднимите базовые сервисы и проверьте статус и их "здоровье":
+5. Поднимите базовые сервисы и проверьте статус и их "здоровье", соберите статику:
 ```
+docker compose -f docker-compose.prod.yml up static_collector
 docker-compose up -d db redis
 docker-compose ps
 ```
 
-6. Выполните миграции для полноценной работы beat:
+6. Выполните миграции для полноценной работы beat и создайте суперпользователя:
 ```
+docker compose exec backend python manage.py createsuperuser
 docker-compose run --rm backend python manage.py migrate
 ```
 
@@ -164,14 +166,25 @@ ssh-copy-id -i ~/.ssh/ilearn_deploy.pub ubuntu@SERVER_IP
 ssh -i ~/.ssh/ilearn_deploy ubuntu@SERVER_IP
 ```
 
-3. Подготовьте переменные окружения:
+3. Склонируйте проект:
+```
+git clone https://github.com/<your-username>/I-learn.git
+cd I-learn
+```
+
+4. Подготовьте переменные окружения:
 ```
 cp .env.example .env
 base64 --wrap=0 .env > env.b64 **либо** certutil -encode .env env.b64
 Get-Content env.b64 | Select-Object -Skip 1 | Select-Object -SkipLast 1 | Out-File -Encoding ascii env_clean.b64
 ```
 
-4. Зайдите в Repo → Settings → Secrets → Actions и добавьте:
+5. Соберите статику:
+```
+docker compose -f docker-compose.prod.yml up static_collector
+```
+
+6. Зайдите в Repo → Settings → Secrets → Actions и добавьте:
 
 | Secret             | Значение                             |
 |--------------------|--------------------------------------|
@@ -182,7 +195,7 @@ Get-Content env.b64 | Select-Object -Skip 1 | Select-Object -SkipLast 1 | Out-Fi
 | DOCKERHUB_USERNAME | 	твой Docker Hub username            |
 | DOCKERHUB_TOKEN    |Access Token из Docker Hub |
 
-5. Подготовьте Systemd Unit для Docker Compose и вставьте данные из deploy/systemd/ilearn.service:
+7. Подготовьте Systemd Unit для Docker Compose и вставьте данные из deploy/systemd/ilearn.service:
 ```
 sudo nano /etc/systemd/system/ilearn.service
 sudo systemctl daemon-reload
@@ -191,7 +204,7 @@ sudo systemctl start ilearn
 sudo systemctl status ilearn
 ```
 
-6. Подготовьте Nginx и вставьте данные из deploy/nginx/default.conf:
+8. Подготовьте Nginx и вставьте данные из deploy/nginx/default.conf:
 ```
 sudo nano /etc/nginx/sites-available/ilearn.conf
 sudo ln -s /etc/nginx/sites-available/ilearn.conf /etc/nginx/sites-enabled/
@@ -200,7 +213,7 @@ sudo systemctl restart nginx
 curl http://localhost
 ```
 
-7. Запустите GitHub Actions Workflow (.github/workflows/deploy.yml):
+9. Запустите GitHub Actions Workflow (.github/workflows/deploy.yml):
 ```
 script: |
   set -eux
@@ -212,7 +225,7 @@ script: |
   docker compose --env-file .env -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput
 ```
 
-8. Проверьте работу всего deploy:
+10. Проверьте работу всего deploy:
 
 На сервере:
 ```

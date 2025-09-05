@@ -123,5 +123,5 @@ jobs:
           docker compose --env-file .env -f docker-compose.prod.yml up -d --remove-orphans
           
           docker compose --env-file .env -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput || true
-          docker compose --env-file .env -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput || true
+          docker compose --env-file .env -f docker-compose.prod.yml up static_collector
           EOF
