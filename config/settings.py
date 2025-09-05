@@ -147,9 +147,9 @@ USE_TZ = True
 
 # Static files
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
 
-STATIC_ROOT = Path("/app/static")
+STATIC_ROOT = Path(os.getenv("STATIC_ROOT", BASE_DIR / "staticfiles"))
+STATICFILES_DIRS = [] if not DEBUG else [BASE_DIR / "static"]
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
