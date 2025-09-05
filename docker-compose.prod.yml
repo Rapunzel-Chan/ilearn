@@ -43,8 +43,15 @@ services:
     command: gunicorn --bind 0.0.0.0:8000 config.wsgi:application
     volumes:
       - media:/app/media
-      - static:/app/static
+      - static:/app/static/
     restart: unless-stopped
+
+  static_collector:
+    build: .
+    command: bash -c "python manage.py collectstatic -c --no-input"
+    env_file: .env
+    volumes:
+      - django_static:/app/static/
 
   celery:
     image: ${DOCKERHUB_USERNAME}/ilearn-app:${IMAGE_TAG}
