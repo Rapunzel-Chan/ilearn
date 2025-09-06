@@ -4,12 +4,14 @@ Requires=docker.service
 After=docker.service
 
 [Service]
-Type=simple
-WorkingDirectory=/home/your_user/I-learn
-ExecStart=/usr/bin/docker compose --env-file /home/your_user/I-learn/.env -f /home/your_user/I-learn/docker-compose.prod.yml up
-ExecStop=/usr/bin/docker compose -f /home/your_user/I-learn/docker-compose.prod.yml down
-Restart=always
+Type=oneshot
+WorkingDirectory=/home/admin1/I-learn
 
+ExecStart=/usr/bin/docker compose --env-file /home/admin1/I-learn/.env -f /home/admin1/I-learn/docker-compose.prod.yml up -d --remove-orphans
+ExecStop=/usr/bin/docker compose -f /home/admin1/I-learn/docker-compose.prod.yml down
+RemainAfterExit=yes
+TimeoutStartSec=0
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
